@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<head>
+  <style>
+    table { border-spacing: 0px; }
+    td {
+      width: 10px;
+      height: 10px;
+    }
+    td:hover { cursor: pointer }
+    #color-picker div {
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      border: 4px solid white;
+    }
+    #color-picker div:hover { cursor: pointer }
+    .selected {
+      border: 4px solid yellow !important;
+    }
+    #red { background-color: red; }
+    #green { background-color: green; }
+    #blue { background-color: blue; }
+  </style>
+</head>
+<body>
+  <table id="grid"></table>
+  <div id="color-picker"></div>
+  <script>
+    const socket = new WebSocket('ws://localhost:8080/ws');
+    const gridSize = 100;
+    let currentColor = '#7C7C7C';
+    const setCurrentColor = function(color) {
+      currentColor = color;
+      console.log('currentColor:', color);
+    }
+
+    const colors = [
+      '#7C7C7C',
+      '#0000FC',
+      '#0000BC',
+      '#4428BC',
+      '#940084',
+      '#A80020',
+      '#A81000',
+      '#881400',
+      '#503000',
+      '#007800',
+      '#006800',
+      '#005800',
+      '#004058',
+      '#000000',
+      '#000000',
+      '#000000',
+      '#BCBCBC',
+      '#0078F8',
+      '#0058F8',
+      '#6844FC',
+      '#D800CC',
+      '#E40058',
+      '#F83800',
+      '#E45C10',
+      '#AC7C00',
+      '#00B800',
+      '#00A800',
+      '#00A844',
+      '#008888',
+      '#000000',
+      '#000000',
+      '#000000',
+      '#F8F8F8',
+      '#3CBCFC',
+      '#6888FC',
+      '#9878F8',
+      '#F878F8',
+      '#F85898',
+      '#F87858',
+      '#FCA044',
+      '#F8B800',
+      '#B8F818',
+      '#58D854',
+      '#58F898',
+      '#00E8D8',
+      '#787878',
+      '#000000',
+      '#000000',
+      '#FCFCFC',
+      '#A4E4FC',
+      '#B8B8F8',
+      '#D8B8F8',
+      '#F8B8F8',
+      '#F8A4C0',
+      '#F0D0B0',
+      '#FCE0A8',
+      '#F8D878',
+      '#D8F878',
+      '#B8F8B8',
+      '#B8F8D8',
+      '#00FCFC',
+      '#F8D8F8',
+      '#000000',
+      '#000000',
+    ]
+
+    const initializeGrid = function() {
+      for (let i = 0; i < gridSize; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < gridSize; j++) {
+          const tile = `${i}-${j}`;
+          const elem = document.createElement('td');
+          elem.classList.add('pixel');
+          elem.id = tile;
+          row.appendChild(elem);
+        }
+        const container = document.getElementById('grid');
+        container.appendChild(row);
+      }
+    }
+
+    const initializeColorPicker = function() {
+      for (let i = 0; i < colors.length; i++) {
+        const clr = document.getElementById(colors[i]);
+        const clrElem = document.createElement('div');
+        if (i === 0) {
+          clrElem.classList.add('selected');
+        }
+        clrElem.id = colors[i];
+        const container = document.getElementById('color-picker');
+        if (i % 16 === 0) {
+          container.appendChild(document.createElement('br'));
+        }
+        container.appendChild(clrElem);
+        clrElem.style.backgroundColor = colors[i];
+        clrElem.addEventListener('click', function() {
+          const selectedElem = document.getElementById(currentColor);
+          selectedElem.classList.remove('selected');
+          this.classList.add('selected');
+          setCurrentColor(colors[i]);
+        });
+      }
+    }
+
+    initializeGrid();
+    initializeColorPicker();
+    const pixels = document.getElementsByClassName("pixel");
+    const onChangePixel = function() {
+        const id = this.getAttribute("id");
+        console.log(`changing pixel ${id} to ${currentColor}`)
+        socket.send(JSON.stringify({ type: 'setColor', location: id, color: currentColor }));
+    };
+
+    for (let i=0; i < pixels.length; i++) {
+        pixels[i].addEventListener('click', onChangePixel, false);
+    }
+
+
+    // Connection opened
+    socket.addEventListener('open', function(event) {
+        socket.send(JSON.stringify({ type: 'connection', location: 'hello', color: 'eee' }));
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', function(event) {
+        const message = JSON.parse(event.data);
+        console.log('Message from server ', message);
+        if (!message.type) {
+          return;
+        }
+
+        if (message.type === 'board') {
+          for (let i = 0; i < message.keys.length; i++) {
+            const pixel = document.getElementById(message.keys[i]);
+            pixel.style.backgroundColor = message.board[i];
+          }
+          return;
+        }
+
+        if (message.type === 'setColor') {
+          const changedPixel = document.getElementById(message.location);
+          if (!message.color || !changedPixel) {
+            return;
+          }
+          changedPixel.style.backgroundColor = message.color;
+        }
+    });
+  </script>
+</body>
