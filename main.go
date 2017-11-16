@@ -107,7 +107,9 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			delete(clients, ws)
 			break
 		}
-		broadcast <- msg
+		if msg.Type == "setColor" {
+			broadcast <- msg
+		}
 	}
 }
 

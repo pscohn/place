@@ -28,12 +28,15 @@
   <script>
     const socket = new WebSocket('wss://rslashplace.herokuapp.com/ws');
     const gridSize = 100;
-    let lastPing = new Date();
     let currentColor = '#7C7C7C';
     const setCurrentColor = function(color) {
       currentColor = color;
       console.log('currentColor:', color);
     }
+    setInterval(function() {
+      socket.send(JSON.stringify({ type: 'ping' }))
+    }, 45000);
+
 
     const colors = [
       '#7C7C7C',
@@ -146,7 +149,6 @@
     const onChangePixel = function() {
         const id = this.getAttribute("id");
         console.log(`changing pixel ${id} to ${currentColor}`)
-        lastPing = new Date();
         socket.send(JSON.stringify({ type: 'setColor', location: id, color: currentColor }));
     };
 
@@ -154,13 +156,6 @@
         pixels[i].addEventListener('click', onChangePixel, false);
     }
 
-    setInterval(function() {
-      const now = new Date();
-      if (now - lastPing > 30000) {
-        lastPing = now;
-        socket.send(JSON.stringify({ type: 'ping' }))
-      }
-    }, 30000);
 
     // Connection opened
     socket.addEventListener('open', function(event) {
@@ -169,7 +164,6 @@
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-        lastPing = new Date();
         const message = JSON.parse(event.data);
         console.log('Message from server ', message);
         if (!message.type) {
