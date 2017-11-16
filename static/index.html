@@ -27,11 +27,13 @@
   </style>
 </head>
 <body>
+  Users online: <span id="clients"></span>
   <div id="color-picker"></div>
   <table id="grid"></table>
   <script>
     const socket = new WebSocket('wss://rslashplace.herokuapp.com/ws');
     const gridSize = 100;
+    const connectedClients = 0;
     let currentColor = '#7C7C7C';
     const setCurrentColor = function(color) {
       currentColor = color;
@@ -40,7 +42,6 @@
     setInterval(function() {
       socket.send(JSON.stringify({ type: 'ping' }))
     }, 45000);
-
 
     const colors = [
       '#7C7C7C',
@@ -167,11 +168,16 @@
     });
 
     // Listen for messages
+    const clients = document.getElementById('clients');
     socket.addEventListener('message', function(event) {
         const message = JSON.parse(event.data);
         console.log('Message from server ', message);
         if (!message.type) {
           return;
+        }
+
+        if (message.type === 'clients') {
+          clients.innerHTML = message.count;
         }
 
         if (message.type === 'board') {

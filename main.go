@@ -13,6 +13,7 @@ import (
 var redisClient = connectRedis()
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan Message)
+var broadcastClients = make(chan ClientCountMessage)
 var upgrader = websocket.Upgrader{}
 
 // Message stuff
@@ -27,6 +28,12 @@ type BoardMessage struct {
 	Type  string        `json:"type"`
 	Keys  []string      `json:"keys"`
 	Board []interface{} `json:"board"`
+}
+
+// ClientCountMessage relays the number of connected users
+type ClientCountMessage struct {
+	Type  string `json:"type"`
+	Count int    `json:"count"`
 }
 
 func connectRedis() *redis.Client {
@@ -81,15 +88,22 @@ func initializeBoard(client *redis.Client) {
 	client.MSetNX(s...)
 }
 
+func closeClient(ws *websocket.Conn) {
+	ws.Close()
+	delete(clients, ws)
+	goodbye := ClientCountMessage{"clients", len(clients)}
+	broadcastClients <- goodbye
+}
+
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer ws.Close()
+	defer closeClient(ws)
 	clients[ws] = true
-	hello := Message{"connection", "connection open", ""}
-	broadcast <- hello
+	hello := ClientCountMessage{"clients", len(clients)}
+	broadcastClients <- hello
 
 	keys, board := getBoard(redisClient)
 	err = ws.WriteJSON(BoardMessage{"board", keys, board})
@@ -131,12 +145,28 @@ func handleMessages(redisClient *redis.Client) {
 	}
 }
 
+func handleClientMessages() {
+	for {
+		msg := <-broadcastClients
+		log.Print(msg)
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+	}
+}
+
 func main() {
 	initializeBoard(redisClient)
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/ws", handleConnections)
 	go handleMessages(redisClient)
+	go handleClientMessages()
 	port := os.Getenv("PORT")
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
