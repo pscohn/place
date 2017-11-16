@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/go-redis/redis"
@@ -30,8 +31,8 @@ type BoardMessage struct {
 
 func connectRedis() *redis.Client {
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6380",
-		Password: "",
+		Addr:     os.Getenv("REDIS_URL"),
+		Password: os.Getenv("REDIS_PASS"),
 		DB:       0,
 	})
 	return client
