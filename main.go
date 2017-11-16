@@ -135,7 +135,8 @@ func main() {
 	http.Handle("/", fs)
 	http.HandleFunc("/ws", handleConnections)
 	go handleMessages(redisClient)
-	err := http.ListenAndServe(":8080", nil)
+	port := os.Getenv("PORT")
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
