@@ -1,0 +1,42 @@
+{
+	"ImportPath": "github.com/pscohn/place",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-redis/redis",
+			"Comment": "v6.7.3",
+			"Rev": "d0f86971b5d61de9cebd2616b932acb7ba14d957"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal",
+			"Comment": "v6.7.3",
+			"Rev": "d0f86971b5d61de9cebd2616b932acb7ba14d957"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/consistenthash",
+			"Comment": "v6.7.3",
+			"Rev": "d0f86971b5d61de9cebd2616b932acb7ba14d957"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/hashtag",
+			"Comment": "v6.7.3",
+			"Rev": "d0f86971b5d61de9cebd2616b932acb7ba14d957"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/pool",
+			"Comment": "v6.7.3",
+			"Rev": "d0f86971b5d61de9cebd2616b932acb7ba14d957"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/proto",
+			"Comment": "v6.7.3",
+			"Rev": "d0f86971b5d61de9cebd2616b932acb7ba14d957"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Comment": "v1.2.0-13-g3da6ca0",
+			"Rev": "3da6ca0cb65383f2b607a677b6b55e8358cacee6"
+		}
+	]
+}
