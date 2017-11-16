@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <head>
   <style>
-    table { border-spacing: 0px; }
+    table {
+      border-spacing: 0px;
+      width: 1200px;
+      table-layout: fixed;
+    }
     td {
       width: 10px;
       height: 10px;
@@ -23,8 +27,8 @@
   </style>
 </head>
 <body>
-  <table id="grid"></table>
   <div id="color-picker"></div>
+  <table id="grid"></table>
   <script>
     const socket = new WebSocket('wss://rslashplace.herokuapp.com/ws');
     const gridSize = 100;
